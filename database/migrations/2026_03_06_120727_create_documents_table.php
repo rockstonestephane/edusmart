@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('documents', function (Blueprint $table) {
+            $table->id();
+            $table->string('nom');
+            $table->string('description')->nullable();
+            $table->string('categorie')->default('general'); // tarifs, inscription, formulaires, general
+            $table->string('fichier'); // chemin du fichier
+            $table->string('type_fichier')->nullable(); // pdf, docx, xlsx
+            $table->integer('taille_fichier')->nullable(); // en Ko
+            $table->boolean('actif')->default(true);
+            $table->integer('ordre')->default(0);
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('documents');
+    }
+};
