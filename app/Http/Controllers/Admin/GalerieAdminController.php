@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HandlesImageUpload;
 use App\Models\Galerie;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class GalerieAdminController extends Controller
 {
+    use HandlesImageUpload;
+
     public function index()
     {
         $photos = Galerie::orderBy('ordre')->paginate(config('school.pagination.admin', 15));
@@ -31,10 +33,15 @@ class GalerieAdminController extends Controller
 
         $ordre = Galerie::max('ordre') + 1;
 
-        // Upload multiple
+        // Upload multiple avec conversion WebP
         foreach ($request->file('images') as $file) {
             Galerie::create([
-                'image'     => $file->store(config('school.upload.paths.galerie'), 'public'),
+                'image'     => $this->storeAsWebp(
+                    $file,
+                    config('school.upload.paths.galerie'),
+                    quality: 82,
+                    maxWidth: 1600
+                ),
                 'legende'   => $request->input('legende'),
                 'categorie' => $request->input('categorie'),
                 'homepage'  => $request->boolean('homepage', false),
@@ -62,9 +69,13 @@ class GalerieAdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            Storage::disk('public')->delete($galerie->image);
-            $data['image'] = $request->file('image')
-                ->store(config('school.upload.paths.galerie'), 'public');
+            $this->deleteImage($galerie->image);
+            $data['image'] = $this->storeAsWebp(
+                $request->file('image'),
+                config('school.upload.paths.galerie'),
+                quality: 82,
+                maxWidth: 1600
+            );
         }
 
         $data['homepage'] = $request->boolean('homepage');
@@ -76,7 +87,7 @@ class GalerieAdminController extends Controller
 
     public function destroy(Galerie $galerie)
     {
-        Storage::disk('public')->delete($galerie->image);
+        $this->deleteImage($galerie->image);
         $galerie->delete();
 
         return redirect()->route('admin.galerie.index')

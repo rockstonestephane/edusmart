@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HandlesImageUpload;
 use App\Models\AboutPage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AboutPageController extends Controller
 {
-    /**
-     * Affiche le formulaire d'édition de la page About.
-     * Pas de liste ici — une seule configuration.
-     */
+    use HandlesImageUpload;
+
     public function index()
     {
         $about = AboutPage::getInstance();
@@ -31,12 +29,13 @@ class AboutPageController extends Controller
         $about = AboutPage::getInstance();
 
         if ($request->hasFile('hero_image')) {
-            // Supprime l'ancienne image si elle existe
-            if ($about->hero_image) {
-                Storage::disk('public')->delete($about->hero_image);
-            }
-            $data['hero_image'] = $request->file('hero_image')
-                ->store('about', 'public');
+            $this->deleteImage($about->hero_image);
+            $data['hero_image'] = $this->storeAsWebp(
+                $request->file('hero_image'),
+                'about',
+                quality: 82,
+                maxWidth: 1920
+            );
         }
 
         $about->update($data);

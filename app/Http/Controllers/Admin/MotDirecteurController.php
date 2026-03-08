@@ -3,64 +3,105 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\MotDirecteur;
+use App\Http\Controllers\Traits\HandlesImageUpload;
+use App\Models\HeroSlide;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
-class MotDirecteurController extends Controller
+class HeroSlideController extends Controller
 {
-    /**
-     * Afficher le formulaire d'édition
-     * (une seule entrée en base, on prend la première)
-     */
-    public function edit()
+    use HandlesImageUpload;
+
+    public function index()
     {
-        $motDirecteur = MotDirecteur::first() ?? new MotDirecteur();
-        return view('admin.mot_directeur.edit', compact('motDirecteur'));
+        $slides = HeroSlide::orderBy('ordre')->get();
+        return view('admin.hero-slides.index', compact('slides'));
     }
 
-    /**
-     * Enregistrer ou mettre à jour
-     */
-    public function update(Request $request)
+    public function create()
     {
-        $request->validate([
-            'nom'       => 'required|string|max:255',
-            'poste'     => 'required|string|max:255',
-            'texte'     => 'required|string',
-            'photo'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'signature' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:1024',
+        return view('admin.hero-slides.create');
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'surtitre'    => 'nullable|string|max:100',
+            'titre'       => 'required|string|max:200',
+            'description' => 'nullable|string|max:500',
+            'image'       => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'btn1_label'  => 'nullable|string|max:60',
+            'btn1_url'    => 'nullable|string|max:200',
+            'btn2_label'  => 'nullable|string|max:60',
+            'btn2_url'    => 'nullable|string|max:200',
+            'ordre'       => 'integer|min:0',
+            'actif'       => 'boolean',
         ]);
 
-        // On récupère l'entrée existante ou on en crée une nouvelle
-        $motDirecteur = MotDirecteur::first() ?? new MotDirecteur();
+        $data['image'] = $this->storeAsWebp(
+            $request->file('image'),
+            config('school.upload.paths.hero'),
+            quality: 85,
+            maxWidth: 1920
+        );
 
-        $motDirecteur->nom   = $request->nom;
-        $motDirecteur->poste = $request->poste;
-        $motDirecteur->texte = $request->texte;
+        $data['actif'] = $request->boolean('actif', true);
+        $data['ordre'] = $request->input('ordre', HeroSlide::max('ordre') + 1);
 
-        // Gestion upload photo
-        if ($request->hasFile('photo')) {
-            // Supprimer l'ancienne photo si elle existe
-            if ($motDirecteur->photo) {
-                Storage::disk('public')->delete($motDirecteur->photo);
-            }
-            $motDirecteur->photo = $request->file('photo')
-                                           ->store('directeur', 'public');
+        HeroSlide::create($data);
+
+        return redirect()->route('admin.hero-slides.index')
+            ->with('success', 'Slide créé avec succès !');
+    }
+
+    public function edit(HeroSlide $heroSlide)
+    {
+        return view('admin.hero-slides.edit', compact('heroSlide'));
+    }
+
+    public function update(Request $request, HeroSlide $heroSlide)
+    {
+        $data = $request->validate([
+            'surtitre'    => 'nullable|string|max:100',
+            'titre'       => 'required|string|max:200',
+            'description' => 'nullable|string|max:500',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'btn1_label'  => 'nullable|string|max:60',
+            'btn1_url'    => 'nullable|string|max:200',
+            'btn2_label'  => 'nullable|string|max:60',
+            'btn2_url'    => 'nullable|string|max:200',
+            'ordre'       => 'integer|min:0',
+            'actif'       => 'boolean',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $this->deleteImage($heroSlide->image);
+            $data['image'] = $this->storeAsWebp(
+                $request->file('image'),
+                config('school.upload.paths.hero'),
+                quality: 85,
+                maxWidth: 1920
+            );
         }
 
-        // Gestion upload signature
-        if ($request->hasFile('signature')) {
-            if ($motDirecteur->signature) {
-                Storage::disk('public')->delete($motDirecteur->signature);
-            }
-            $motDirecteur->signature = $request->file('signature')
-                                               ->store('directeur', 'public');
-        }
+        $data['actif'] = $request->boolean('actif');
+        $heroSlide->update($data);
 
-        $motDirecteur->save();
+        return redirect()->route('admin.hero-slides.index')
+            ->with('success', 'Slide mis à jour avec succès !');
+    }
 
-        return redirect()->route('admin.mot-directeur.edit')
-                         ->with('success', 'Mot du directeur mis à jour avec succès !');
+    public function destroy(HeroSlide $heroSlide)
+    {
+        $this->deleteImage($heroSlide->image);
+        $heroSlide->delete();
+
+        return redirect()->route('admin.hero-slides.index')
+            ->with('success', 'Slide supprimé avec succès !');
+    }
+
+    public function toggle(HeroSlide $heroSlide)
+    {
+        $heroSlide->update(['actif' => !$heroSlide->actif]);
+        return back()->with('success', 'Statut mis à jour !');
     }
 }

@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HandlesImageUpload;
 use App\Models\Actualite;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ActualiteAdminController extends Controller
 {
+    use HandlesImageUpload;
+
     public function index()
     {
         $actualites = Actualite::latest()->paginate(config('school.pagination.admin', 15));
@@ -32,7 +34,12 @@ class ActualiteAdminController extends Controller
             'publiee'    => 'boolean',
         ]);
 
-        $data['image']      = $request->file('image')->store(config('school.upload.paths.actualites'), 'public');
+        $data['image'] = $this->storeAsWebp(
+            $request->file('image'),
+            config('school.upload.paths.actualites'),
+            quality: 82,
+            maxWidth: 1200
+        );
         $data['slug']       = Str::slug($data['titre']);
         $data['publiee']    = $request->boolean('publiee', true);
         $data['published_at'] = now();
@@ -60,8 +67,13 @@ class ActualiteAdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            Storage::disk('public')->delete($actualite->image);
-            $data['image'] = $request->file('image')->store(config('school.upload.paths.actualites'), 'public');
+            $this->deleteImage($actualite->image);
+            $data['image'] = $this->storeAsWebp(
+                $request->file('image'),
+                config('school.upload.paths.actualites'),
+                quality: 82,
+                maxWidth: 1200
+            );
         }
 
         $data['slug']    = Str::slug($data['titre']);
@@ -75,7 +87,7 @@ class ActualiteAdminController extends Controller
 
     public function destroy(Actualite $actualite)
     {
-        Storage::disk('public')->delete($actualite->image);
+        $this->deleteImage($actualite->image);
         $actualite->delete();
 
         return redirect()->route('admin.actualites.index')

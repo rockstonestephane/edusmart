@@ -3,11 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HandlesImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 class SettingController extends Controller
 {
+    use HandlesImageUpload;
+
     public function index()
     {
         return view('admin.parametres.index');
@@ -40,28 +46,38 @@ class SettingController extends Controller
             'espace_parent_url'  => 'nullable|string|max:200',
         ]);
 
-        // Upload logo
         $logoPath = $this->readEnvValue('SCHOOL_LOGO');
 
         if ($request->hasFile('school_logo')) {
-            $uploadDir = public_path('storage/uploads/settings');
-            File::ensureDirectoryExists($uploadDir);
+            $file = $request->file('school_logo');
 
-            if ($logoPath) {
-                $oldFile = public_path('storage/' . $logoPath);
-                if (File::exists($oldFile)) {
-                    File::delete($oldFile);
+            // SVG : pas de conversion WebP, on garde le format d'origine
+            if (strtolower($file->getClientOriginalExtension()) === 'svg') {
+                $uploadDir = public_path('storage/uploads/settings');
+                File::ensureDirectoryExists($uploadDir);
+
+                if ($logoPath) {
+                    $oldFile = public_path('storage/' . $logoPath);
+                    if (File::exists($oldFile)) File::delete($oldFile);
                 }
+
+                $fileName = Str::random(40) . '.svg';
+                $file->move($uploadDir, $fileName);
+                $logoPath = 'uploads/settings/' . $fileName;
+            } else {
+                // PNG/JPG → WebP
+                if ($logoPath) {
+                    Storage::disk('public')->delete($logoPath);
+                }
+                $logoPath = $this->storeAsWebp(
+                    $file,
+                    'uploads/settings',
+                    quality: 90,
+                    maxWidth: 400
+                );
             }
-
-            $file      = $request->file('school_logo');
-            $fileName  = \Str::random(40) . '.' . $file->getClientOriginalExtension();
-            $file->move($uploadDir, $fileName);
-
-            $logoPath = 'uploads/settings/' . $fileName;
         }
 
-        // Mise à jour des variables
         $envData = [
             'SCHOOL_NAME'              => $data['school_name'],
             'SCHOOL_SLOGAN'            => $data['school_slogan']      ?? '',
@@ -88,7 +104,6 @@ class SettingController extends Controller
 
         $this->updateEnv($envData);
 
-        // Flash infos → fichier JSON
         if (isset($data['flash_infos'])) {
             $infos = array_values(array_filter(
                 array_map('trim', explode("\n", $data['flash_infos']))

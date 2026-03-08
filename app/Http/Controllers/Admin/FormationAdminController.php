@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HandlesImageUpload;
 use App\Models\Formation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class FormationAdminController extends Controller
 {
+    use HandlesImageUpload;
+
     public function index()
     {
         $formations = Formation::orderBy('ordre')->paginate(config('school.pagination.admin', 15));
@@ -36,11 +38,14 @@ class FormationAdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')
-                ->store(config('school.upload.paths.formations'), 'public');
+            $data['image'] = $this->storeAsWebp(
+                $request->file('image'),
+                config('school.upload.paths.formations'),
+                quality: 82,
+                maxWidth: 1200
+            );
         }
 
-        // Convertit les tags (chaîne séparée par virgules) en tableau
         $data['tags']   = $this->parseTags($request->input('tags'));
         $data['slug']   = Str::slug($data['titre']);
         $data['active'] = $request->boolean('active', true);
@@ -72,11 +77,13 @@ class FormationAdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($formation->image) {
-                Storage::disk('public')->delete($formation->image);
-            }
-            $data['image'] = $request->file('image')
-                ->store(config('school.upload.paths.formations'), 'public');
+            $this->deleteImage($formation->image);
+            $data['image'] = $this->storeAsWebp(
+                $request->file('image'),
+                config('school.upload.paths.formations'),
+                quality: 82,
+                maxWidth: 1200
+            );
         }
 
         $data['tags']   = $this->parseTags($request->input('tags'));
@@ -91,9 +98,7 @@ class FormationAdminController extends Controller
 
     public function destroy(Formation $formation)
     {
-        if ($formation->image) {
-            Storage::disk('public')->delete($formation->image);
-        }
+        $this->deleteImage($formation->image);
         $formation->delete();
 
         return redirect()->route('admin.formations.index')

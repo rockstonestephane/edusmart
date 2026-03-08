@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HandlesImageUpload;
 use App\Models\Temoignage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class TemoignageAdminController extends Controller
 {
+    use HandlesImageUpload;
+
     public function index()
     {
         $temoignages = Temoignage::orderBy('ordre')->paginate(config('school.pagination.admin', 15));
@@ -33,8 +35,12 @@ class TemoignageAdminController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')
-                ->store(config('school.upload.paths.temoignages'), 'public');
+            $data['photo'] = $this->storeAsWebp(
+                $request->file('photo'),
+                config('school.upload.paths.temoignages'),
+                quality: 85,
+                maxWidth: 300
+            );
         }
 
         $data['publie'] = $request->boolean('publie', true);
@@ -64,11 +70,13 @@ class TemoignageAdminController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            if ($temoignage->photo) {
-                Storage::disk('public')->delete($temoignage->photo);
-            }
-            $data['photo'] = $request->file('photo')
-                ->store(config('school.upload.paths.temoignages'), 'public');
+            $this->deleteImage($temoignage->photo);
+            $data['photo'] = $this->storeAsWebp(
+                $request->file('photo'),
+                config('school.upload.paths.temoignages'),
+                quality: 85,
+                maxWidth: 300
+            );
         }
 
         $data['publie'] = $request->boolean('publie');
@@ -80,9 +88,7 @@ class TemoignageAdminController extends Controller
 
     public function destroy(Temoignage $temoignage)
     {
-        if ($temoignage->photo) {
-            Storage::disk('public')->delete($temoignage->photo);
-        }
+        $this->deleteImage($temoignage->photo);
         $temoignage->delete();
 
         return redirect()->route('admin.temoignages.index')

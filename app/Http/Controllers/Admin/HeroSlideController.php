@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HandlesImageUpload;
 use App\Models\HeroSlide;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class HeroSlideController extends Controller
 {
+    use HandlesImageUpload;
+
     public function index()
     {
         $slides = HeroSlide::orderBy('ordre')->get();
@@ -35,9 +37,12 @@ class HeroSlideController extends Controller
             'actif'       => 'boolean',
         ]);
 
-        // Upload image
-        $data['image'] = $request->file('image')
-            ->store(config('school.upload.paths.hero'), 'public');
+        $data['image'] = $this->storeAsWebp(
+            $request->file('image'),
+            config('school.upload.paths.hero'),
+            quality: 85,
+            maxWidth: 1920
+        );
 
         $data['actif'] = $request->boolean('actif', true);
         $data['ordre'] = $request->input('ordre', HeroSlide::max('ordre') + 1);
@@ -68,15 +73,17 @@ class HeroSlideController extends Controller
             'actif'       => 'boolean',
         ]);
 
-        // Nouvelle image uploadée ?
         if ($request->hasFile('image')) {
-            Storage::disk('public')->delete($heroSlide->image);
-            $data['image'] = $request->file('image')
-                ->store(config('school.upload.paths.hero'), 'public');
+            $this->deleteImage($heroSlide->image);
+            $data['image'] = $this->storeAsWebp(
+                $request->file('image'),
+                config('school.upload.paths.hero'),
+                quality: 85,
+                maxWidth: 1920
+            );
         }
 
         $data['actif'] = $request->boolean('actif');
-
         $heroSlide->update($data);
 
         return redirect()->route('admin.hero-slides.index')
@@ -85,7 +92,7 @@ class HeroSlideController extends Controller
 
     public function destroy(HeroSlide $heroSlide)
     {
-        Storage::disk('public')->delete($heroSlide->image);
+        $this->deleteImage($heroSlide->image);
         $heroSlide->delete();
 
         return redirect()->route('admin.hero-slides.index')

@@ -3,82 +3,105 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\PageHero;
+use App\Http\Controllers\Traits\HandlesImageUpload;
+use App\Models\HeroSlide;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
-class PageHeroController extends Controller
+class HeroSlideController extends Controller
 {
-    /**
-     * Pages disponibles avec leurs labels
-     */
-    private array $pages = [
-        'formations' => '📚 Formations',
-        'actualites' => '📰 Actualités',
-        'galerie'    => '🎨 Galerie',
-        'contact'    => '✉️ Contact',
-    ];
+    use HandlesImageUpload;
 
-    /**
-     * Affiche le formulaire de gestion des images hero
-     */
     public function index()
     {
-        $heroes = [];
-        foreach ($this->pages as $key => $label) {
-            $heroes[$key] = [
-                'label' => $label,
-                'hero'  => PageHero::getForPage($key),
-            ];
-        }
-
-        return view('admin.page-heroes.index', compact('heroes'));
+        $slides = HeroSlide::orderBy('ordre')->get();
+        return view('admin.hero-slides.index', compact('slides'));
     }
 
-    /**
-     * Met à jour l'image hero d'une page
-     */
-    public function update(Request $request, string $page)
+    public function create()
     {
-        if (!array_key_exists($page, $this->pages)) {
-            abort(404);
-        }
-
-        $request->validate([
-            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
-        ]);
-
-        $hero = PageHero::getForPage($page);
-
-        // Supprime l'ancienne image
-        if ($hero->image) {
-            Storage::disk('public')->delete($hero->image);
-        }
-
-        // Enregistre la nouvelle
-        $hero->update([
-            'image' => $request->file('image')->store('heroes', 'public'),
-        ]);
-
-        return back()->with('success', "Image hero de la page {$this->pages[$page]} mise à jour !");
+        return view('admin.hero-slides.create');
     }
 
-    /**
-     * Supprime l'image hero d'une page
-     */
-    public function destroy(string $page)
+    public function store(Request $request)
     {
-        if (!array_key_exists($page, $this->pages)) {
-            abort(404);
+        $data = $request->validate([
+            'surtitre'    => 'nullable|string|max:100',
+            'titre'       => 'required|string|max:200',
+            'description' => 'nullable|string|max:500',
+            'image'       => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'btn1_label'  => 'nullable|string|max:60',
+            'btn1_url'    => 'nullable|string|max:200',
+            'btn2_label'  => 'nullable|string|max:60',
+            'btn2_url'    => 'nullable|string|max:200',
+            'ordre'       => 'integer|min:0',
+            'actif'       => 'boolean',
+        ]);
+
+        $data['image'] = $this->storeAsWebp(
+            $request->file('image'),
+            config('school.upload.paths.hero'),
+            quality: 85,
+            maxWidth: 1920
+        );
+
+        $data['actif'] = $request->boolean('actif', true);
+        $data['ordre'] = $request->input('ordre', HeroSlide::max('ordre') + 1);
+
+        HeroSlide::create($data);
+
+        return redirect()->route('admin.hero-slides.index')
+            ->with('success', 'Slide créé avec succès !');
+    }
+
+    public function edit(HeroSlide $heroSlide)
+    {
+        return view('admin.hero-slides.edit', compact('heroSlide'));
+    }
+
+    public function update(Request $request, HeroSlide $heroSlide)
+    {
+        $data = $request->validate([
+            'surtitre'    => 'nullable|string|max:100',
+            'titre'       => 'required|string|max:200',
+            'description' => 'nullable|string|max:500',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'btn1_label'  => 'nullable|string|max:60',
+            'btn1_url'    => 'nullable|string|max:200',
+            'btn2_label'  => 'nullable|string|max:60',
+            'btn2_url'    => 'nullable|string|max:200',
+            'ordre'       => 'integer|min:0',
+            'actif'       => 'boolean',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $this->deleteImage($heroSlide->image);
+            $data['image'] = $this->storeAsWebp(
+                $request->file('image'),
+                config('school.upload.paths.hero'),
+                quality: 85,
+                maxWidth: 1920
+            );
         }
 
-        $hero = PageHero::getForPage($page);
+        $data['actif'] = $request->boolean('actif');
+        $heroSlide->update($data);
 
-        if ($hero->image) {
-            Storage::disk('public')->delete($hero->image);
-            $hero->update(['image' => null]);
-        }
+        return redirect()->route('admin.hero-slides.index')
+            ->with('success', 'Slide mis à jour avec succès !');
+    }
 
-        return back()->with('success', "Image hero supprimée !");
+    public function destroy(HeroSlide $heroSlide)
+    {
+        $this->deleteImage($heroSlide->image);
+        $heroSlide->delete();
+
+        return redirect()->route('admin.hero-slides.index')
+            ->with('success', 'Slide supprimé avec succès !');
+    }
+
+    public function toggle(HeroSlide $heroSlide)
+    {
+        $heroSlide->update(['actif' => !$heroSlide->actif]);
+        return back()->with('success', 'Statut mis à jour !');
     }
 }
