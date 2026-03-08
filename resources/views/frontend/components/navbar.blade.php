@@ -424,8 +424,9 @@ if (!empty($schoolLogo)) {
                aria-label="{{ $schoolName ?? config('school.name', 'EduSmart School') }} — Accueil">
                 @if(!empty($schoolLogo))
                     <img src="{{ asset($schoolLogo) }}{{ $logoTimestamp }}"
-                         alt="{{ $schoolName ?? config('school.name', 'EduSmart') }}"
-                         class="nav-logo-img">
+                     alt="{{ $schoolName ?? config('school.name', 'EduSmart') }}"
+                     loading="lazy"
+                     class="nav-logo-img">
                 @else
                     <div class="nav-logo-icon">
                         <svg width="21" height="21" viewBox="0 0 24 24" fill="none"

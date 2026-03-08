@@ -278,8 +278,9 @@
                         <div class="footer-logo-icon" style="@if($logoPath) background:transparent;box-shadow:none; @endif">
                             @if($logoPath)
                                 <img src="{{ asset('storage/' . $logoPath) }}"
-                                     alt="{{ env('SCHOOL_NAME', config('school.name', 'EduSmart')) }}"
-                                     class="w-full h-full object-contain p-1">
+                                 alt="{{ env('SCHOOL_NAME', config('school.name', 'EduSmart')) }}"
+                                 loading="lazy"
+                                 class="w-full h-full object-contain p-1">
                             @else
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
                                      stroke="#0d1224" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
