@@ -40,16 +40,13 @@ class SettingController extends Controller
             'espace_parent_url'  => 'nullable|string|max:200',
         ]);
 
-        // Upload logo — directement dans public/storage pour éviter
-        // le problème de lien symbolique sur Windows
+        // Upload logo
         $logoPath = $this->readEnvValue('SCHOOL_LOGO');
 
         if ($request->hasFile('school_logo')) {
-            // Dossier de destination dans public/storage
             $uploadDir = public_path('storage/uploads/settings');
             File::ensureDirectoryExists($uploadDir);
 
-            // Supprimer l'ancien logo si existant
             if ($logoPath) {
                 $oldFile = public_path('storage/' . $logoPath);
                 if (File::exists($oldFile)) {
@@ -57,16 +54,14 @@ class SettingController extends Controller
                 }
             }
 
-            // Générer un nom unique et déplacer le fichier
             $file      = $request->file('school_logo');
             $fileName  = \Str::random(40) . '.' . $file->getClientOriginalExtension();
             $file->move($uploadDir, $fileName);
 
-            // Chemin relatif stocké dans .env (sans "public/storage/")
             $logoPath = 'uploads/settings/' . $fileName;
         }
 
-        // Mise à jour du fichier .env
+        // Mise à jour des variables
         $envData = [
             'SCHOOL_NAME'              => $data['school_name'],
             'SCHOOL_SLOGAN'            => $data['school_slogan']      ?? '',
@@ -112,32 +107,28 @@ class SettingController extends Controller
             ->with('success', 'Paramètres mis à jour avec succès !');
     }
 
-    /**
-     * Affichage du logo dans les vues :
-     * utiliser asset('storage/' . env('SCHOOL_LOGO'))
-     * au lieu de Storage::url(env('SCHOOL_LOGO'))
-     */
-
-    /**
-     * Lit directement la valeur dans le fichier .env
-     * sans passer par le cache Laravel
-     */
-    private function readEnvValue(string $key): ?string
+    private function getEnvPath(): string
     {
         $envPath = base_path('.env');
-        if (!file_exists($envPath)) return null;
+        if (!file_exists($envPath)) {
+            file_put_contents($envPath, '');
+        }
+        return $envPath;
+    }
 
+    private function readEnvValue(string $key): ?string
+    {
+        $envPath = $this->getEnvPath();
         $content = file_get_contents($envPath);
         if (preg_match("/^{$key}=(.*)$/m", $content, $matches)) {
             return trim($matches[1], '"\'') ?: null;
         }
-
-        return null;
+        return env($key) ?: null;
     }
 
     private function updateEnv(array $data): void
     {
-        $envPath    = base_path('.env');
+        $envPath    = $this->getEnvPath();
         $envContent = file_get_contents($envPath);
 
         foreach ($data as $key => $value) {
