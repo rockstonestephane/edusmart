@@ -27,8 +27,8 @@
     /* ── Hero ──────────────────────────────────────────── */
     .hero-swiper            { width:100%; height:100svh; min-height:580px; }
     .hero-swiper .swiper-slide { position:relative; display:flex; align-items:center; justify-content:center; }
-    .slide-bg               { position:absolute; inset:0; background-size:cover; background-position:center; transform:scale(1.06); transition:transform 6s ease; }
-    .swiper-slide-active .slide-bg { transform:scale(1); }
+    .hero-swiper .swiper-slide img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.06); transition:transform 6s ease; }
+    .swiper-slide-active img { transform:scale(1) !important; }
     .hero-overlay           { position:absolute; inset:0; background:linear-gradient(135deg,rgba(13,18,36,.78) 0%,rgba(25,38,134,.55) 60%,transparent 100%); }
     .hero-content           { position:relative; z-index:2; padding-left:1rem; padding-right:1rem; }
     .swiper-pagination-bullet        { background:rgba(255,255,255,.5)!important; opacity:1!important; width:8px!important; height:8px!important; }
@@ -39,14 +39,12 @@
     .swiper-button-prev:hover { background:rgba(41,82,245,.6)!important; }
     .swiper-button-next::after,
     .swiper-button-prev::after { font-size:16px!important; font-weight:700; }
-
     /* ── Hero responsive mobile ────────────────────────── */
     @media (max-width: 639px) {
         .swiper-button-next,
         .swiper-button-prev { display:none!important; }
         .swiper-pagination  { bottom:16px!important; }
     }
-
     /* ── Hero responsive tablette ──────────────────────── */
     @media (min-width: 640px) and (max-width: 1023px) {
         .swiper-button-next,
@@ -54,20 +52,16 @@
         .swiper-button-next::after,
         .swiper-button-prev::after { font-size:13px!important; }
     }
-
     /* ── Compteur animé ────────────────────────────────── */
     .stat-counter { display:inline-block; }
-
     /* ── Utilitaires section ───────────────────────────── */
     .section-badge  { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#f0f4ff,#dce6ff); color:#1a3de8; font-size:.75rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; padding:6px 16px; border-radius:100px; border:1px solid rgba(41,82,245,.15); }
     .gradient-text  { background:linear-gradient(135deg,#2952f5,#e8b014); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
     .card-hover     { transition:transform .35s cubic-bezier(.22,.68,0,1.2),box-shadow .35s ease; }
     .card-hover:hover { transform:translateY(-8px); box-shadow:0 24px 48px rgba(41,82,245,.14); }
     .blob           { position:absolute; border-radius:60% 40% 70% 30%/50% 60% 40% 50%; filter:blur(56px); opacity:.18; pointer-events:none; }
-
     /* ── Gallery swiper slides ─────────────────────────── */
     .gallery-swiper .swiper-slide { width:288px; }
-
     /* ── Line clamp ────────────────────────────────────── */
     .line-clamp-2 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
     .line-clamp-3 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
@@ -87,7 +81,10 @@
 
             @foreach($heroSlides as $slide)
             <div class="swiper-slide">
-                <div class="slide-bg" style="background-image:url('{{ Storage::url($slide->image) }}')"></div>
+                <img src="{{ Storage::url($slide->image) }}"
+                     alt="{{ $slide->surtitre ?? config('school.name', 'EduSmart School') }}"
+                     class="absolute inset-0 w-full h-full object-cover"
+                     {{ $loop->first ? 'fetchpriority=high' : 'loading=lazy' }}>
                 <div class="hero-overlay"></div>
                 <div class="hero-content text-center text-white px-4 max-w-4xl mx-auto">
                     <p class="inline-block mb-5 text-sm font-semibold tracking-[0.25em] uppercase
@@ -128,7 +125,7 @@
             @endforeach
 
         @else
-        {{-- ── Fallback statique (développement / pas de slides en DB) ── --}}
+        {{-- ── Fallback statique ── --}}
         @foreach([
             [
                 'surtitre' => 'Bienvenue à ' . config('school.name','EduSmart School'),
@@ -154,9 +151,12 @@
                 'btn1'     => ['Voir la galerie', null],
                 'btn2'     => null,
             ],
-        ] as $slide)
+        ] as $i => $slide)
         <div class="swiper-slide">
-            <div class="slide-bg" style="background-image:url('{{ asset($slide['bg']) }}')"></div>
+            <img src="{{ asset($slide['bg']) }}"
+                 alt="{{ $slide['surtitre'] }}"
+                 class="absolute inset-0 w-full h-full object-cover"
+                 {{ $i === 0 ? 'fetchpriority=high' : 'loading=lazy' }}>
             <div class="hero-overlay"></div>
             <div class="hero-content text-center text-white px-4 max-w-4xl mx-auto">
                 <p class="inline-block mb-5 text-sm font-semibold tracking-[0.25em] uppercase
