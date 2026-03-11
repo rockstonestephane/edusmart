@@ -7,7 +7,7 @@
 {{-- ════════════ 1. HERO ════════════ --}}
 @php
     $heroBg = $about->hero_image
-        ? 'background-image:url(' . Storage::url($about->hero_image) . ');background-size:cover;background-position:center;'
+        ? 'background-image:url(' . image_url($about->hero_image) . ');background-size:cover;background-position:center;'
         : 'background:linear-gradient(135deg,#0d1224 0%,#192686 60%,#0d1224 100%)';
 @endphp
 <section class="relative py-32 overflow-hidden" style="{{ $heroBg }}">
@@ -131,7 +131,7 @@
                              style="background:linear-gradient(135deg,#f5c842,#e8b014)"></div>
                         <div class="flex items-center gap-4">
                             @if($motDirecteur->photo)
-                            <img src="{{ Storage::url($motDirecteur->photo) }}"
+                            <img src="{{ image_url($motDirecteur->photo) }}"
                                  alt="{{ $motDirecteur->nom }}"
                                  class="w-14 h-14 rounded-full object-cover shadow-md
                                         border-4 border-white ring-2 ring-blue-100 flex-shrink-0">
@@ -152,7 +152,7 @@
                                 </div>
                             </div>
                             @if($motDirecteur->signature)
-                            <img src="{{ Storage::url($motDirecteur->signature) }}"
+                            <img src="{{ image_url($motDirecteur->signature) }}"
                                  alt="Signature"
                                  class="h-10 object-contain ml-auto opacity-80">
                             @endif
@@ -297,7 +297,7 @@
                 <div class="equipe-card bg-white rounded-2xl p-8 shadow-md border-2 border-transparent text-center"
                      data-aos="fade-up" data-aos-delay="{{ $i * 100 }}">
                     @if($membre->photo)
-                    <img src="{{ Storage::url($membre->photo) }}"
+                    <img src="{{ image_url($membre->photo) }}"
                          alt="{{ $membre->nom }}"
                          class="equipe-photo w-20 h-20 rounded-full object-cover mx-auto mb-4 shadow-lg
                                 border-4 border-white ring-2 ring-blue-100">

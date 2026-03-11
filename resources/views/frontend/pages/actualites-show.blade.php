@@ -32,7 +32,7 @@
 
             {{-- Article --}}
             <div class="lg:col-span-2">
-                <img src="{{ Storage::url($actualite->image) }}"
+                <img src="{{ image_url($actualite->image) }}"
                      alt="{{ $actualite->titre }}"
                      class="w-full h-72 object-cover rounded-2xl mb-8 shadow-md">
 
@@ -71,7 +71,7 @@
                         @foreach($recentes as $r)
                         <a href="{{ lroute('actualites.show', ['slug' => $r->slug]) }}"
                            class="flex gap-3 group">
-                            <img src="{{ Storage::url($r->image) }}"
+                            <img src="{{ image_url($r->image) }}"
                                  alt="{{ $r->titre }}"
                                  class="w-16 h-12 object-cover rounded-lg flex-shrink-0">
                             <div>

@@ -423,7 +423,7 @@ if (!empty($schoolLogo)) {
             <a href="{{ lroute('home') }}" class="flex items-center gap-3 flex-shrink-0 nav-logo-link"
                aria-label="{{ $schoolName ?? config('school.name', 'EduSmart School') }} — Accueil">
                 @if(!empty($schoolLogo))
-                    <img src="{{ asset($schoolLogo) }}{{ $logoTimestamp }}"
+                    <img src="{{ $schoolLogo }}"
                      alt="{{ $schoolName ?? config('school.name', 'EduSmart') }}"
                      loading="lazy"
                      class="nav-logo-img">

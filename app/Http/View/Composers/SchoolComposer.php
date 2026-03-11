@@ -12,7 +12,7 @@ class SchoolComposer
 
         $view->with([
             'schoolName'      => env('SCHOOL_NAME',            config('school.name')),
-            'schoolLogo'      => $logoPath ? 'storage/' . $logoPath : null,
+            'schoolLogo'      => $logoPath ? (str_starts_with($logoPath, 'http') ? $logoPath : 'storage/' . $logoPath) : null,
             'schoolPhone'     => env('SCHOOL_PHONE',           config('school.phone')),
             'schoolEmail'     => env('SCHOOL_EMAIL',           config('school.email')),
             'schoolAddress'   => env('SCHOOL_ADDRESS',         config('school.address')),

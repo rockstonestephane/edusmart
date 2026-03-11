@@ -9,7 +9,7 @@
     <h1 class="text-2xl font-bold text-gray-800">Modifier le slide</h1>
 </div>
 
-<form method="POST" action="{{ route('admin.hero-slides.update', $heroSlide->id) }}"
+<form method="POST" action="{{ route('admin.hero-slides.update', $heroSlide) }}"
       enctype="multipart/form-data">
     @csrf
     @method('PUT')
@@ -80,7 +80,7 @@
                 {{-- Image actuelle --}}
                 <div class="mb-4">
                     <p class="text-xs text-gray-400 mb-2">Image actuelle :</p>
-                    <img src="{{ Storage::url($heroSlide->image) }}"
+                    <img src="{{ $heroSlide->image}}"
                          alt="Image actuelle"
                          class="w-full h-40 object-cover rounded-xl">
                 </div>
@@ -91,7 +91,7 @@
                         <img id="image-preview" src="" alt="Aperçu"
                              class="w-full h-40 object-cover rounded-xl">
                     </div>
-                    <div id="upload-placeholder">
+                    <div id="upload-placeholder">-
                         <div class="text-3xl mb-2">🔄</div>
                         <p class="text-sm font-semibold text-gray-600 mb-1">
                             Cliquez pour changer l'image

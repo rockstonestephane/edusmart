@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
 
 class SettingController extends Controller
 {
@@ -46,36 +45,16 @@ class SettingController extends Controller
             'espace_parent_url'  => 'nullable|string|max:200',
         ]);
 
-        $logoPath = $this->readEnvValue('SCHOOL_LOGO');
+        $logoPath = env('SCHOOL_LOGO', '');
 
         if ($request->hasFile('school_logo')) {
             $file = $request->file('school_logo');
 
-            // SVG : pas de conversion WebP, on garde le format d'origine
-            if (strtolower($file->getClientOriginalExtension()) === 'svg') {
-                $uploadDir = public_path('storage/uploads/settings');
-                File::ensureDirectoryExists($uploadDir);
-
-                if ($logoPath) {
-                    $oldFile = public_path('storage/' . $logoPath);
-                    if (File::exists($oldFile)) File::delete($oldFile);
-                }
-
-                $fileName = Str::random(40) . '.svg';
-                $file->move($uploadDir, $fileName);
-                $logoPath = 'uploads/settings/' . $fileName;
-            } else {
-                // PNG/JPG → WebP
-                if ($logoPath) {
-                    Storage::disk('public')->delete($logoPath);
-                }
-                $logoPath = $this->storeAsWebp(
-                    $file,
-                    'uploads/settings',
-                    quality: 90,
-                    maxWidth: 400
-                );
-            }
+            // Upload vers Cloudinary
+$result = cloudinary()->uploadApi()->upload($file->getRealPath(), [
+    'folder' => 'edusmart/uploads/settings',
+]);
+$logoPath = $result['secure_url'];
         }
 
         $envData = [
@@ -115,9 +94,6 @@ class SettingController extends Controller
             );
         }
 
-        \Artisan::call('config:clear');
-        \Artisan::call('cache:clear');
-
         return redirect()->route('admin.parametres.index')
             ->with('success', 'Paramètres mis à jour avec succès !');
     }
@@ -133,12 +109,15 @@ class SettingController extends Controller
 
     private function readEnvValue(string $key): ?string
     {
+        $value = env($key);
+        if ($value) return $value;
+
         $envPath = $this->getEnvPath();
         $content = file_get_contents($envPath);
-        if (preg_match("/^{$key}=(.*)$/m", $content, $matches)) {
-            return trim($matches[1], '"\'') ?: null;
+        if (preg_match("/^{$key}=\"?([^\"\n]*)\"?$/m", $content, $matches)) {
+            return trim($matches[1]) ?: null;
         }
-        return env($key) ?: null;
+        return null;
     }
 
     private function updateEnv(array $data): void

@@ -27,3 +27,23 @@ if (! function_exists('switch_locale_url')) {
         return route($current, $params);
     }
 }
+
+if (! function_exists('image_url')) {
+    /**
+     * Retourne l'URL correcte d'une image
+     * - URL Cloudinary (http/https) → retournée telle quelle
+     * - Chemin local storage        → Storage::url($path)
+     *
+     * Usage : image_url($model->image)
+     */
+    function image_url(?string $path): string
+    {
+        if (!$path) return '';
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($path);
+    }
+}

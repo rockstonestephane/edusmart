@@ -9,7 +9,7 @@
 {{-- ════════════════════════════════════════════════════ --}}
 <section class="relative py-32 overflow-hidden"
          style="{{ $hero->image
-            ? 'background-image:url(' . Storage::url($hero->image) . ');background-size:cover;background-position:center;'
+            ? 'background-image:url(' . image_url($hero->image) . ');background-size:cover;background-position:center;'
             : 'background:linear-gradient(135deg,#0d1224 0%,#192686 60%,#0d1224 100%)' }}">
 
     @if($hero->image)
@@ -19,7 +19,7 @@
     <div class="blob w-96 h-96 top-0 right-0" style="background:#f5c842"></div>
     <div class="blob w-64 h-64 bottom-0 left-0" style="background:#2952f5"></div>
 
-    <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+    <div class="max-w-4xl mx-auto px-4 te8xt-center relative z-10">
         <span class="section-badge mb-4"
               style="background:rgba(255,255,255,0.1);color:#f5c842;border-color:rgba(245,200,66,0.3)">
             🎨 Campus &amp; événements
@@ -68,8 +68,8 @@
         <div class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4" data-aos="fade-up">
             @foreach($photos as $photo)
             <div class="break-inside-avoid group relative overflow-hidden rounded-2xl shadow-md cursor-pointer"
-                 onclick="openLightbox('{{ Storage::url($photo->image) }}', '{{ $photo->legende ?? '' }}')">
-                <img src="{{ Storage::url($photo->image) }}"
+                 onclick="openLightbox('{{ image_url($photo->image) }}', '{{ $photo->legende ?? '' }}')">
+                <img src="{{ image_url($photo->image) }}"
                      alt="{{ $photo->legende ?? 'Photo galerie' }}"
                      class="w-full object-cover transition-transform duration-500 group-hover:scale-105"
                      loading="lazy">

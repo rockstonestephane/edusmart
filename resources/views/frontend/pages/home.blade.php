@@ -25,11 +25,20 @@
 @push('styles')
 <style>
     /* ── Hero ──────────────────────────────────────────── */
-    .hero-swiper            { width:100%; height:100svh; min-height:580px; }
+    .hero-swiper { width:100%; height:calc(100svh - 103px); min-height:580px; }
     .hero-swiper .swiper-slide { position:relative; display:flex; align-items:center; justify-content:center; }
     .hero-swiper .swiper-slide img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.06); transition:transform 6s ease; }
     .swiper-slide-active img { transform:scale(1) !important; }
-    .hero-overlay           { position:absolute; inset:0; background:linear-gradient(135deg,rgba(13,18,36,.78) 0%,rgba(25,38,134,.55) 60%,transparent 100%); }
+    .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(13, 18, 36, 0.10) 0%,
+        rgba(25, 38, 134, 0.20) 40%,
+        rgba(13, 18, 36, 0.50) 100%
+    );
+}
     .hero-content           { position:relative; z-index:2; padding-left:1rem; padding-right:1rem; }
     .swiper-pagination-bullet        { background:rgba(255,255,255,.5)!important; opacity:1!important; width:8px!important; height:8px!important; }
     .swiper-pagination-bullet-active { background:#f5c842!important; width:28px!important; border-radius:4px!important; }
@@ -81,7 +90,7 @@
 
             @foreach($heroSlides as $slide)
             <div class="swiper-slide">
-                <img src="{{ Storage::url($slide->image) }}"
+                <img src="{{ image_url($slide->image) }}"
                      alt="{{ $slide->surtitre ?? config('school.name', 'EduSmart School') }}"
                      class="absolute inset-0 w-full h-full object-cover"
                      {{ $loop->first ? 'fetchpriority=high' : 'loading=lazy' }}>
@@ -315,7 +324,7 @@
                 {{-- ── Photo ou dégradé de remplacement ── --}}
                 <div class="relative h-48 overflow-hidden flex-shrink-0">
                     @if($image)
-                        <img src="{{ asset('storage/' . $image) }}"
+                        <img src="{{ image_url($image) }}"
      alt="{{ $title }}"
      loading="lazy"
      class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
@@ -408,7 +417,7 @@
                      data-aos="fade-up" data-aos-delay="{{ ($i % 3) * 100 }}">
 
                 <div class="relative overflow-hidden h-52 flex-shrink-0">
-                    <img src="{{ Storage::url($actu->image) }}"
+                    <img src="{{ image_url($actu->image) }}"
                          alt="{{ $actu->titre }}"
                          class="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                          loading="lazy">
@@ -497,7 +506,7 @@
                 @forelse($galerie ?? [] as $photo)
                 <div class="swiper-slide">
                     <div class="relative group overflow-hidden rounded-2xl shadow-md">
-                        <img src="{{ Storage::url($photo->image) }}"
+                        <img src="{{ image_url($photo->image) }}"
                              alt="{{ $photo->legende ?? 'Photo galerie' }}"
                              class="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
                              loading="lazy">
@@ -591,7 +600,7 @@
                         {{-- Photo ou initiale --}}
                         <div class="mb-4">
                             @if($photo)
-                                <img src="{{ Storage::url($photo) }}"
+                                <img src="{{ image_url($photo)}}"
                                      alt="{{ $nom }}"
                                      class="temoignage-photo w-20 h-20 rounded-full object-cover border-4 border-yellow-100 shadow-md mx-auto">
                             @else

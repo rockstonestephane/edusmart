@@ -277,7 +277,7 @@
                         @php $logoPath = env('SCHOOL_LOGO', ''); @endphp
                         <div class="footer-logo-icon" style="@if($logoPath) background:transparent;box-shadow:none; @endif">
                             @if($logoPath)
-                                <img src="{{ asset('storage/' . $logoPath) }}"
+                                <img src="{{ str_starts_with($logoPath, 'http') ? $logoPath : asset('storage/' . $logoPath) }}"
                                  alt="{{ env('SCHOOL_NAME', config('school.name', 'EduSmart')) }}"
                                  loading="lazy"
                                  class="w-full h-full object-contain p-1">

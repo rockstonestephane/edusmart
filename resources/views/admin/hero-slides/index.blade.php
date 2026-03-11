@@ -49,7 +49,7 @@
                     </span>
                 </td>
                 <td>
-                    <img src="{{ Storage::url($slide->image) }}"
+                    <img src="{{ $slide->image  }}"
                          alt="{{ $slide->titre }}"
                          class="w-20 h-12 object-cover rounded-lg">
                 </td>

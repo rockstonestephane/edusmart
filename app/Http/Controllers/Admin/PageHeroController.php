@@ -1,107 +1,56 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HandlesImageUpload;
-use App\Models\HeroSlide;
+use App\Models\PageHero;
 use Illuminate\Http\Request;
 
-class HeroSlideController extends Controller
+class PageHeroController extends Controller
 {
     use HandlesImageUpload;
 
     public function index()
     {
-        $slides = HeroSlide::orderBy('ordre')->get();
-        return view('admin.hero-slides.index', compact('slides'));
+        $pages = ['accueil', 'a-propos', 'formations', 'actualites', 'galerie', 'contact'];
+
+        $heroes = [];
+        foreach ($pages as $page) {
+            $heroes[$page] = [
+                'hero'  => PageHero::firstOrCreate(['page' => $page]),
+                'label' => ucfirst(str_replace('-', ' ', $page)),
+            ];
+        }
+
+        return view('admin.page-heroes.index', compact('heroes'));
     }
 
-    public function create()
+    public function update(Request $request, $page)
     {
-        return view('admin.hero-slides.create');
-    }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'surtitre'    => 'nullable|string|max:100',
-            'titre'       => 'required|string|max:200',
-            'description' => 'nullable|string|max:500',
-            'image'       => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'btn1_label'  => 'nullable|string|max:60',
-            'btn1_url'    => 'nullable|string|max:200',
-            'btn2_label'  => 'nullable|string|max:60',
-            'btn2_url'    => 'nullable|string|max:200',
-            'ordre'       => 'integer|min:0',
-            'actif'       => 'boolean',
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
-        $data['image'] = $this->storeAsWebp(
+        $pageHero = PageHero::where('page', $page)->firstOrFail();
+        $this->deleteImage($pageHero->image);
+        $pageHero->image = $this->storeAsWebp(
             $request->file('image'),
-            config('school.upload.paths.hero'),
+            'page-heroes',
             quality: 85,
             maxWidth: 1920
         );
+        $pageHero->save();
 
-        $data['actif'] = $request->boolean('actif', true);
-        $data['ordre'] = $request->input('ordre', HeroSlide::max('ordre') + 1);
-
-        HeroSlide::create($data);
-
-        return redirect()->route('admin.hero-slides.index')
-            ->with('success', 'Slide créé avec succès !');
+        return back()->with('success', 'Image mise à jour avec succès !');
     }
 
-    public function edit(HeroSlide $heroSlide)
+    public function destroy($page)
     {
-        return view('admin.hero-slides.edit', compact('heroSlide'));
-    }
+        $pageHero = PageHero::where('page', $page)->firstOrFail();
+        $this->deleteImage($pageHero->image);
+        $pageHero->image = null;
+        $pageHero->save();
 
-    public function update(Request $request, HeroSlide $heroSlide)
-    {
-        $data = $request->validate([
-            'surtitre'    => 'nullable|string|max:100',
-            'titre'       => 'required|string|max:200',
-            'description' => 'nullable|string|max:500',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'btn1_label'  => 'nullable|string|max:60',
-            'btn1_url'    => 'nullable|string|max:200',
-            'btn2_label'  => 'nullable|string|max:60',
-            'btn2_url'    => 'nullable|string|max:200',
-            'ordre'       => 'integer|min:0',
-            'actif'       => 'boolean',
-        ]);
-
-        if ($request->hasFile('image')) {
-            $this->deleteImage($heroSlide->image);
-            $data['image'] = $this->storeAsWebp(
-                $request->file('image'),
-                config('school.upload.paths.hero'),
-                quality: 85,
-                maxWidth: 1920
-            );
-        }
-
-        $data['actif'] = $request->boolean('actif');
-        $heroSlide->update($data);
-
-        return redirect()->route('admin.hero-slides.index')
-            ->with('success', 'Slide mis à jour avec succès !');
-    }
-
-    public function destroy(HeroSlide $heroSlide)
-    {
-        $this->deleteImage($heroSlide->image);
-        $heroSlide->delete();
-
-        return redirect()->route('admin.hero-slides.index')
-            ->with('success', 'Slide supprimé avec succès !');
-    }
-
-    public function toggle(HeroSlide $heroSlide)
-    {
-        $heroSlide->update(['actif' => !$heroSlide->actif]);
-        return back()->with('success', 'Statut mis à jour !');
+        return back()->with('success', 'Image supprimée !');
     }
 }

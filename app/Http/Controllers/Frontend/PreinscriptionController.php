@@ -44,23 +44,20 @@ class PreinscriptionController extends Controller
             'bulletin.mimes'            => 'Le bulletin doit être un PDF, JPG ou PNG.',
             'bulletin.max'              => 'Le bulletin ne doit pas dépasser 5 Mo.',
         ]);
-
         // Upload acte de naissance
         if ($request->hasFile('acte_naissance')) {
             $data['acte_naissance'] = $request->file('acte_naissance')
                 ->store('preinscriptions/actes', 'public');
         }
-
         // Upload bulletin
         if ($request->hasFile('bulletin')) {
             $data['bulletin'] = $request->file('bulletin')
                 ->store('preinscriptions/bulletins', 'public');
         }
-
         $data['statut'] = 'en_attente';
         Preinscription::create($data);
 
-        return redirect(route('preinscription') . '#formulaire')
-    ->with('success', 'Votre préinscription a bien été enregistrée ! Nous vous contacterons très prochainement.');
+        return redirect(route('preinscription', ['locale' => app()->getLocale()]) . '#formulaire')
+            ->with('success', 'Votre préinscription a bien été enregistrée ! Nous vous contacterons très prochainement.');
     }
 }

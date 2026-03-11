@@ -31,9 +31,11 @@
 </div>
 @endif
 
-<form method="POST" action="{{ route('admin.mot-directeur.update') }}" enctype="multipart/form-data">
+<form method="POST" action="{{ route('admin.mot-directeur.update', $motDirecteur) }}" enctype="multipart/form-data">
     @csrf
 
+    @method('PUT')
+    
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {{-- ── Colonne principale (2/3) ── --}}
@@ -106,7 +108,7 @@
                 {{-- Prévisualisation actuelle --}}
                 @if($motDirecteur->photo)
                 <div class="mb-4 text-center">
-                    <img src="{{ Storage::url($motDirecteur->photo) }}"
+                    <img src="{{ image_url($motDirecteur->photo) }}"
                          alt="Photo actuelle"
                          class="w-28 h-28 rounded-full object-cover mx-auto shadow-md
                                 border-4 border-white ring-2 ring-blue-100">
@@ -142,7 +144,7 @@
 
                 @if($motDirecteur->signature)
                 <div class="mb-4 text-center bg-gray-50 rounded-xl p-3">
-                    <img src="{{ Storage::url($motDirecteur->signature) }}"
+                    <img src="{{ image_url($motDirecteur->signature) }}"
                          alt="Signature actuelle"
                          class="h-14 mx-auto object-contain">
                     <p class="text-xs text-gray-400 mt-2">Signature actuelle</p>

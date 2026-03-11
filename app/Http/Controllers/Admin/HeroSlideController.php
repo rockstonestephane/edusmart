@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -39,11 +38,10 @@ class HeroSlideController extends Controller
 
         $data['image'] = $this->storeAsWebp(
             $request->file('image'),
-            config('school.upload.paths.hero'),
+            'hero-slides',
             quality: 85,
             maxWidth: 1920
         );
-
         $data['actif'] = $request->boolean('actif', true);
         $data['ordre'] = $request->input('ordre', HeroSlide::max('ordre') + 1);
 
@@ -77,7 +75,7 @@ class HeroSlideController extends Controller
             $this->deleteImage($heroSlide->image);
             $data['image'] = $this->storeAsWebp(
                 $request->file('image'),
-                config('school.upload.paths.hero'),
+                'hero-slides',
                 quality: 85,
                 maxWidth: 1920
             );
@@ -103,5 +101,13 @@ class HeroSlideController extends Controller
     {
         $heroSlide->update(['actif' => !$heroSlide->actif]);
         return back()->with('success', 'Statut mis à jour !');
+    }
+
+    public function reorder(Request $request)
+    {
+        foreach ($request->input('order', []) as $index => $id) {
+            HeroSlide::where('id', $id)->update(['ordre' => $index + 1]);
+        }
+        return response()->json(['success' => true]);
     }
 }

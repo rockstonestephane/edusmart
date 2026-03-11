@@ -9,7 +9,7 @@
 {{-- ════════════════════════════════════════════════════ --}}
 <section class="relative py-32 overflow-hidden"
          style="{{ $hero->image
-            ? 'background-image:url(' . Storage::url($hero->image) . ');background-size:cover;background-position:center;'
+            ? 'background-image:url(' . image_url($hero->image) . ');background-size:cover;background-position:center;'
             : 'background:linear-gradient(135deg,#0d1224 0%,#192686 60%,#0d1224 100%)' }}">
 
     @if($hero->image)
@@ -72,7 +72,7 @@
             <article class="card-hover bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100"
                      data-aos="fade-up" data-aos-delay="{{ ($i % 3) * 100 }}">
                 <div class="relative overflow-hidden h-52">
-                    <img src="{{ Storage::url($actu->image) }}"
+                    <img src="{{ image_url($actu->image) }}"
                          alt="{{ $actu->titre }}"
                          class="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                          loading="lazy">

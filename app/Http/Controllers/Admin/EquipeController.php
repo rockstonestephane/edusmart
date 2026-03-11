@@ -8,7 +8,7 @@ use App\Models\Actualite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-class ActualiteAdminController extends Controller
+class EquipeController extends Controller
 {
     use HandlesImageUpload;
 

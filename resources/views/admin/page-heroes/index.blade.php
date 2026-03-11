@@ -19,7 +19,7 @@
         {{-- Aperçu image --}}
         <div class="relative h-48 overflow-hidden">
             @if($data['hero']->image)
-                <img src="{{ Storage::url($data['hero']->image) }}"
+                <img src="{{ $data['hero']->image }}"
                      alt="Hero {{ $page }}"
                      class="w-full h-full object-cover">
                 <div class="absolute inset-0"
