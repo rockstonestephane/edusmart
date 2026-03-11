@@ -2,7 +2,6 @@
 namespace App\Http\Controllers\Traits;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Laravel\Facades\Image;
 use Cloudinary\Cloudinary;
@@ -25,33 +24,40 @@ trait HandlesImageUpload
 
         $webpData = $image->toWebp($quality)->toString();
 
-        // Upload vers Cloudinary
+        // Configurer Cloudinary
         Configuration::instance(config('cloudinary.cloud_url'));
         $cloudinary = new Cloudinary();
 
+        // Sauvegarde temporaire du fichier
         $tempPath = sys_get_temp_dir() . '/' . Str::random(40) . '.webp';
         file_put_contents($tempPath, $webpData);
 
+        // Upload vers Cloudinary
         $result = $cloudinary->uploadApi()->upload($tempPath, [
             'folder' => 'edusmart/' . $folder,
+            'resource_type' => 'image',
+            'format' => 'webp',
         ]);
 
+        // Nettoyage du fichier temporaire
         unlink($tempPath);
 
+        // Retourne l'URL sécurisée Cloudinary
         return $result['secure_url'];
     }
 
     protected function deleteImage(?string $path): void
     {
         if ($path && str_contains($path, 'cloudinary.com')) {
-            preg_match('/edusmart\/.*(?=\.\w+$)/', $path, $matches);
+            // Extraire le public_id de l'image
+            preg_match('/edusmart\/.*(?=\.webp)/', $path, $matches);
             if (!empty($matches[0])) {
                 Configuration::instance(config('cloudinary.cloud_url'));
                 $cloudinary = new Cloudinary();
-                $cloudinary->uploadApi()->destroy($matches[0]);
+                $cloudinary->uploadApi()->destroy($matches[0], [
+                    'resource_type' => 'image'
+                ]);
             }
-        } elseif ($path) {
-            Storage::disk('public')->delete($path);
         }
     }
 }
