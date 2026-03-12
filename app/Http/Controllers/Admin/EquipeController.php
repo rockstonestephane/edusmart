@@ -4,9 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\HandlesImageUpload;
-use App\Models\Actualite;
+use App\Models\Equipe;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class EquipeController extends Controller
 {
@@ -14,89 +13,90 @@ class EquipeController extends Controller
 
     public function index()
     {
-        $actualites = Actualite::latest()->paginate(config('school.pagination.admin', 15));
-        return view('admin.actualites.index', compact('actualites'));
+        $membres = Equipe::orderBy('ordre')->paginate(config('school.pagination.admin', 15));
+        return view('admin.equipe.index', compact('membres'));
     }
 
     public function create()
     {
-        return view('admin.actualites.create');
+        return view('admin.equipe.create');
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'titre'      => 'required|string|max:200',
-            'extrait'    => 'required|string|max:500',
-            'contenu'    => 'required|string',
-            'image'      => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'categorie'  => 'required|string|max:60',
-            'publiee'    => 'boolean',
+            'nom'        => 'required|string|max:200',
+            'poste'      => 'required|string|max:200',
+            'bio'        => 'nullable|string',
+            'photo'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'ordre'      => 'nullable|integer|min:0',
+            'actif'      => 'boolean',
         ]);
 
-        $data['image'] = $this->storeAsWebp(
-            $request->file('image'),
-            config('school.upload.paths.actualites'),
-            quality: 82,
-            maxWidth: 1200
-        );
-        $data['slug']       = Str::slug($data['titre']);
-        $data['publiee']    = $request->boolean('publiee', true);
-        $data['published_at'] = now();
-
-        Actualite::create($data);
-
-        return redirect()->route('admin.actualites.index')
-            ->with('success', 'Actualité créée avec succès !');
-    }
-
-    public function edit(Actualite $actualite)
-    {
-        return view('admin.actualites.edit', compact('actualite'));
-    }
-
-    public function update(Request $request, Actualite $actualite)
-    {
-        $data = $request->validate([
-            'titre'     => 'required|string|max:200',
-            'extrait'   => 'required|string|max:500',
-            'contenu'   => 'required|string',
-            'image'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'categorie' => 'required|string|max:60',
-            'publiee'   => 'boolean',
-        ]);
-
-        if ($request->hasFile('image')) {
-            $this->deleteImage($actualite->image);
-            $data['image'] = $this->storeAsWebp(
-                $request->file('image'),
-                config('school.upload.paths.actualites'),
-                quality: 82,
-                maxWidth: 1200
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $this->storeAsWebp(
+                $request->file('photo'),
+                'equipe',
+                quality: 85,
+                maxWidth: 600
             );
         }
 
-        $data['slug']    = Str::slug($data['titre']);
-        $data['publiee'] = $request->boolean('publiee');
+        $data['actif'] = $request->boolean('actif', true);
+        $data['ordre'] = $data['ordre'] ?? Equipe::max('ordre') + 1;
 
-        $actualite->update($data);
+        Equipe::create($data);
 
-        return redirect()->route('admin.actualites.index')
-            ->with('success', 'Actualité mise à jour avec succès !');
+        return redirect()->route('admin.equipe.index')
+            ->with('success', 'Membre ajouté avec succès !');
     }
 
-    public function destroy(Actualite $actualite)
+    public function edit(Equipe $equipe)
     {
-        $this->deleteImage($actualite->image);
-        $actualite->delete();
-
-        return redirect()->route('admin.actualites.index')
-            ->with('success', 'Actualité supprimée !');
+        return view('admin.equipe.edit', compact('equipe'));
     }
 
-    public function toggle(Actualite $actualite)
+    public function update(Request $request, Equipe $equipe)
     {
-        $actualite->update(['publiee' => !$actualite->publiee]);
+        $data = $request->validate([
+            'nom'   => 'required|string|max:200',
+            'poste' => 'required|string|max:200',
+            'bio'   => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'ordre' => 'nullable|integer|min:0',
+            'actif' => 'boolean',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $this->deleteImage($equipe->photo);
+            $data['photo'] = $this->storeAsWebp(
+                $request->file('photo'),
+                'equipe',
+                quality: 85,
+                maxWidth: 600
+            );
+        }
+
+        $data['actif'] = $request->boolean('actif');
+
+        $equipe->update($data);
+
+        return redirect()->route('admin.equipe.index')
+            ->with('success', 'Membre mis à jour avec succès !');
+    }
+
+    public function destroy(Equipe $equipe)
+    {
+        $this->deleteImage($equipe->photo);
+        $equipe->delete();
+
+        return redirect()->route('admin.equipe.index')
+            ->with('success', 'Membre supprimé !');
+    }
+
+    public function toggle(Equipe $equipe)
+    {
+        $equipe->update(['actif' => !$equipe->actif]);
         return back()->with('success', 'Statut mis à jour !');
     }
 }

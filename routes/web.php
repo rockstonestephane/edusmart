@@ -145,8 +145,8 @@ Route::prefix('admin')
         Route::post('equipe/{equipe}/toggle', [EquipeController::class, 'toggle'])->name('equipe.toggle');
 
         // Mot du Directeur
-        Route::get('mot-directeur',  [MotDirecteurController::class, 'edit'])->name('mot-directeur.edit');
-        Route::post('mot-directeur', [MotDirecteurController::class, 'update'])->name('mot-directeur.update');
+        Route::get('mot-directeur',  [MotDirecteurController::class, 'edit'])->name('mot_directeur.edit');
+        Route::put('mot-directeur', [MotDirecteurController::class, 'update'])->name('mot_directeur.update');
 
         // Paramètres école
         Route::get('parametres',  [SettingController::class, 'index'])->name('parametres.index');

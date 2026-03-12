@@ -162,7 +162,7 @@
 
                 <div class="relative min-h-72 lg:min-h-0" data-aos="fade-left">
                     @if($motDirecteur->photo)
-                    <img src="{{ Storage::url($motDirecteur->photo) }}"
+                    <img src="{{  image_url($motDirecteur->photo) }}"
                          alt="{{ $motDirecteur->nom }}"
                          class="w-full h-full object-cover object-top">
                     <div class="absolute bottom-6 left-6 bg-white rounded-2xl px-5 py-3 shadow-lg

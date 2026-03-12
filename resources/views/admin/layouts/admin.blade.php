@@ -370,7 +370,7 @@
          x-data="{
             openContenu: {{ request()->routeIs('admin.hero-slides.*','admin.actualites.*','admin.formations.*','admin.galerie.*','admin.temoignages.*') ? 'true' : 'false' }},
             openAccueil: {{ request()->routeIs('admin.statistiques.*','admin.rentree-scolaire.*') ? 'true' : 'false' }},
-            openPages: {{ request()->routeIs('admin.page-heroes.*','admin.about.*','admin.valeurs.*','admin.equipe.*','admin.mot-directeur.*') ? 'true' : 'false' }}
+            openPages: {{ request()->routeIs('admin.page-heroes.*','admin.about.*','admin.valeurs.*','admin.equipe.*','admin.mot_directeur.*') ? 'true' : 'false' }}
          }">
 
         {{-- ── Principal ── --}}
@@ -469,8 +469,8 @@
                 <span class="nav-sub-dot"></span> Équipe de direction
             </a>
 
-            <a href="{{ route('admin.mot-directeur.edit') }}"
-            class="nav-sub-item {{ request()->routeIs('admin.mot-directeur.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.mot_directeur.edit') }}"
+            class="nav-sub-item {{ request()->routeIs('admin.mot_directeur.*') ? 'active' : '' }}">
                 <span class="nav-sub-dot"></span> Mot du directeur
             </a>
         </div>

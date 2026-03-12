@@ -14,7 +14,7 @@ class MotDirecteurController extends Controller
     public function edit()
     {
         $motDirecteur = MotDirecteur::first() ?? new MotDirecteur();
-        return view('admin.mot-directeur.edit', compact('motDirecteur'));
+        return view('admin.mot_directeur.edit', compact('motDirecteur'));
     }
 
     public function update(Request $request)
@@ -51,7 +51,7 @@ class MotDirecteurController extends Controller
 
         $motDirecteur->fill($data)->save();
 
-        return redirect()->route('admin.mot-directeur.edit')
+        return redirect()->route('admin.mot_directeur.edit')
             ->with('success', 'Mot du Directeur mis à jour avec succès !');
     }
 }
