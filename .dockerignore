@@ -1,0 +1,24 @@
+# Dépendances (seront installées sur Koyeb via le Dockerfile)
+/vendor
+/node_modules
+
+# Configuration et secrets
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+
+# Dossiers Git
+.git
+.gitignore
+
+# Cache et Logs Laravel
+storage/*.key
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+
+# Divers
+.DS_Store
+Thumbs.db
